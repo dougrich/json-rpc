@@ -1,0 +1,27 @@
+{
+  "name": "@dougrich/json-rpc-commonjs-client",
+  "version": "0.0.1",
+  "description": "x-json-rpc js client",
+  "main": "index.js",
+  "scripts": {
+    "test": "standard --fix && mocha",
+    "lint": "standard"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "dirty-chai": "^2.0.1",
+    "mocha": "^7.1.1",
+    "sinon": "^9.0.2",
+    "sinon-chai": "^3.5.0",
+    "standard": "^14.3.3"
+  },
+  "standard": {
+    "globals": [
+      "it",
+      "describe"
+    ]
+  }
+}

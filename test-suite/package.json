@@ -1,0 +1,27 @@
+{
+  "name": "@dougrich/test-suite",
+  "version": "1.0.0",
+  "description": "The test suite verifies implementation of the X-JSON-RPC format defined in this repo.",
+  "main": "index.js",
+  "scripts": {
+    "start": "mocha",
+    "lint": "standard"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "mocha": "^7.1.1",
+    "node-fetch": "^2.6.0"
+  },
+  "devDependencies": {
+    "standard": "^14.3.3"
+  },
+  "standard": {
+    "globals": [
+      "it",
+      "describe"
+    ]
+  }
+}

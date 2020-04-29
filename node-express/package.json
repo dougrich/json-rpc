@@ -1,0 +1,21 @@
+{
+  "name": "@dougrich/json-rpc-node-express",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start-testsuite": "node ./test-suite/index.js",
+    "lint": "standard"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "body-parser": "^1.19.0",
+    "mocha": "^7.1.1",
+    "standard": "^14.3.3"
+  },
+  "peerDependencies": {
+    "express": "4.x"
+  }
+}
