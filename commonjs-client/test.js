@@ -8,6 +8,7 @@ chai.use(dirtyChai)
 const { expect } = chai
 const {
   JSONRPCClient,
+  PersistentJSONRPCClient,
   HeaderContentType,
   DefaultContentType,
   DefaultMethod,
@@ -212,5 +213,50 @@ describe('JSONRPCClient', () => {
         await expect(client.api('test.unit').add(1, 2, 3, 4)).to.eventually.rejectedWith(expectedErrorMsg)
       })
     })
+  })
+})
+
+describe('PersistentJSONRPCClient', () => {
+  function createFakeWebsocket () {
+    const state = {
+      endpoint: '',
+      messages: [],
+      events: {}
+    }
+
+    return [state, class {
+      constructor (endpoint) {
+        state.endpoint = endpoint
+      }
+
+      send (message) {
+        state.messages.push(JSON.parse(message))
+      }
+
+      addEventListener (type, handler) {
+        state.events[type] = handler
+      }
+    }]
+  }
+
+  it('creates a new websocket, sends request, understands response', async () => {
+    const [wsstate, ws] = createFakeWebsocket()
+    const client = new PersistentJSONRPCClient('ws://example.test.com', { websocket: ws })
+    const result = client.api('test.unit').add(1, 2, 3, 4)
+    expect(wsstate.endpoint).to.eql('ws://example.test.com')
+    expect(wsstate.events.message).to.exist()
+    setTimeout(function () {
+      wsstate.events.open()
+      setTimeout(function () {
+        wsstate.events.message({ data: JSON.stringify({ id: 0, result: 5, jsonrpc: JSONRPCVersion }) })
+      })
+    })
+    await expect(result).to.eventually.equal(5)
+    expect(wsstate.messages).to.eql([{
+      jsonrpc: JSONRPCVersion,
+      method: 'test.unit.add',
+      params: [1, 2, 3, 4],
+      id: 0
+    }])
   })
 })

@@ -3,7 +3,8 @@ const chai = require('chai')
 const chaiAsPromised = require('chai-as-promised')
 chai.use(chaiAsPromised)
 const { expect } = chai
-const { JSONRPCClient } = require('../commonjs-client')
+const { JSONRPCClient, PersistentJSONRPCClient } = require('../commonjs-client')
+const WebSocket = require('ws')
 
 const endpoint = process.env.ENDPOINT
 
@@ -45,4 +46,18 @@ describe('http', () => {
       expect(api.Missing(1)).to.eventually.rejectedWith('[-32601] method not found on server')
     ])
   })
+})
+
+
+it('ws', async () => {
+  const connection = new PersistentJSONRPCClient('ws://' + endpoint, { websocket: WebSocket })
+  const api = connection.api('test')
+
+  await Promise.all([
+    expect(api.Sum(1, 4, 5)).to.eventually.eql(10),
+    expect(api.Sum(1, 4, '5')).to.eventually.rejectedWith('[-32602] parameters should be (number (int), number (int), ...number (int))'),
+    expect(api.Sum(1)).to.eventually.rejectedWith('[-32602] parameters should be (number (int), number (int), ...number (int))'),
+    expect(api.Missing(1)).to.eventually.rejectedWith('[-32601] method not found on server')
+  ])
+  connection.close()
 })

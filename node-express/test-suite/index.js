@@ -1,6 +1,7 @@
 const { JSONRPCMiddleware, RPCError } = require('../')
 const express = require('express')
 const bodyParser = require('body-parser')
+const http = require('http')
 
 const methods = {
   Sum: (context, ...numbers) => {
@@ -31,8 +32,11 @@ const TestAuth = async (context, req) => {
 }
 
 const app = express()
-app.use(bodyParser.json())
-app.use(new JSONRPCMiddleware({
+const { middleware, upgrader } = new JSONRPCMiddleware({
   test: methods
-}, TestAuth))
-app.listen(8080)
+}, TestAuth)
+app.use(bodyParser.json())
+app.use(middleware)
+const server = http.createServer(app)
+server.on('upgrade', upgrader)
+server.listen(8080)

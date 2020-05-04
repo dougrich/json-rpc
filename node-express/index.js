@@ -1,13 +1,18 @@
+const WebSocket = require('ws')
 const JSONRPCVersion = '2.0-x'
 
 class JSONRPCMiddleware {
   constructor (namespacedmethods, ...middleware) {
     this.namespacedmethods = namespacedmethods
     this.middleware = middleware
-    return this.serve.bind(this)
+    this.ws = new WebSocket.Server({ noServer: true })
+    return {
+      middleware: this.serve.bind(this),
+      upgrader: this.upgrade.bind(this),
+    }
   }
 
-  _methodLookup (method, id) {
+  _methodLookup (method) {
     const steps = method.split('.')
     let container = this.namespacedmethods
     for (const s of steps.slice(0, -1)) {
@@ -34,7 +39,7 @@ class JSONRPCMiddleware {
 
   async _handle (context, { method: methodname, params, id }) {
     try {
-      const method = this._methodLookup(methodname, id)
+      const method = this._methodLookup(methodname)
       const result = method(context, ...params)
       return {
         jsonrpc: JSONRPCVersion,
@@ -50,7 +55,7 @@ class JSONRPCMiddleware {
     }
   }
 
-  serve (req, res, next) {
+  serve (req, res) {
     let requests = req.body
     if (!Array.isArray(requests)) {
       requests = [requests]
@@ -69,6 +74,19 @@ class JSONRPCMiddleware {
       } else {
         res.json(results)
       }
+    })
+  }
+
+  upgrade(request, socket, head) {
+    this._readContext(request).then(context => {
+      this.ws.handleUpgrade(request, socket, head, ws => {
+        ws.on('message', (d) => {
+          const request = JSON.parse(d)
+          this._handle(context, request).then(result => {
+            ws.send(JSON.stringify(result))
+          })
+        })
+      })
     })
   }
 }
