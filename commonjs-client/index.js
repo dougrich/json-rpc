@@ -195,7 +195,7 @@ class PersistentJSONRPCClient extends BaseJSONRPCClient {
     return p
   }
 
-  close() {
+  close () {
     if (this.connection) {
       this.connection.close(1000)
     }
