@@ -1,6 +1,6 @@
 {
   "name": "@dougrich/json-rpc-commonjs-client",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "x-json-rpc js client",
   "main": "index.js",
   "scripts": {

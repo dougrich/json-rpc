@@ -20,6 +20,7 @@ class BaseJSONRPCClient {
   constructor () {
     this.id = 0
     this.pending = {}
+    this.cachedNamespaces = {}
     this.debounceCalls = []
   }
 
@@ -67,24 +68,33 @@ class BaseJSONRPCClient {
     })
   }
 
-  api (namespace) {
-    if (namespace) {
-      namespace += '.'
-    }
-    return new Proxy(Object.freeze({}), {
-      get: (_, method) => {
-        const that = this
-        return function () {
+  _proxy (parts) {
+    const fullyQualifedName = parts.join('.')
+    if (!this.cachedNamespaces[fullyQualifedName]) {
+      this.cachedNamespaces[fullyQualifedName] = new Proxy(function () {}, {
+        get: (_, method) => {
+          return this._proxy([...parts, method])
+        },
+        apply: (target, thisArg, argumentsList) => {
           const payload = {
             jsonrpc: JSONRPCVersion,
-            method: namespace + method,
-            params: Array.prototype.slice.apply(arguments),
-            id: that.id++
+            method: fullyQualifedName,
+            params: argumentsList,
+            id: this.id++
           }
-          return that._enqueue(payload)
+          return this._enqueue(payload)
         }
-      }
-    })
+      })
+    }
+    return this.cachedNamespaces[fullyQualifedName]
+  }
+
+  api (namespace) {
+    const parts = []
+    if (namespace) {
+      parts.push(namespace)
+    }
+    return this._proxy(parts)
   }
 }
 

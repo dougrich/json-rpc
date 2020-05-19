@@ -183,6 +183,59 @@ describe('JSONRPCClient', () => {
     })
   })
 
+  it('can use namespace lookup', async () => {
+    const fetch = createFetch()
+    const client = new JSONRPCClient(
+      testendpoint,
+      { fetch }
+    )
+    const result = await client.api().test.add(1, 2, 3, 4)
+    expect(result).to.eql(testresult)
+    expect(fetch).to.have.been.calledWith(testendpoint, {
+      method: DefaultMethod,
+      headers: {
+        [HeaderContentType]: DefaultContentType
+      },
+      body: JSON.stringify({
+        jsonrpc: JSONRPCVersion,
+        method: 'test.add',
+        params: [1, 2, 3, 4],
+        id: 0
+      })
+    })
+  })
+  it('can use nested namespace lookup', async () => {
+    const fetch = createFetch()
+    const client = new JSONRPCClient(
+      testendpoint,
+      { fetch }
+    )
+    const result = await client.api().test.unit.add(1, 2, 3, 4)
+    expect(result).to.eql(testresult)
+    expect(fetch).to.have.been.calledWith(testendpoint, {
+      method: DefaultMethod,
+      headers: {
+        [HeaderContentType]: DefaultContentType
+      },
+      body: JSON.stringify({
+        jsonrpc: JSONRPCVersion,
+        method: 'test.unit.add',
+        params: [1, 2, 3, 4],
+        id: 0
+      })
+    })
+  })
+  it('has cached lookups', async () => {
+    const fetch = createFetch()
+    const client = new JSONRPCClient(
+      testendpoint,
+      { fetch }
+    )
+    const result0 = client.api().test
+    const result1 = client.api('test')
+    expect(result0).to.equal(result1)
+  })
+
   describe('errors', () => {
     [
       [
