@@ -141,6 +141,7 @@ class JSONRPCClient extends BaseJSONRPCClient {
       if (this.debounceTimeout == null) {
         this.debounceTimeout = setTimeout(() => {
           const calls = this.debounceCalls
+          this.debounceTimeout = null
           this.debounceCalls = []
           this._request(calls, calls.map(x => x.id))
         }, this.debounceWindow)

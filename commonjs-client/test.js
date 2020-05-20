@@ -157,6 +157,39 @@ describe('JSONRPCClient', () => {
     })
     expect(fetch).to.have.been.calledOnce()
   })
+  it('debounce bounce', async () => {
+    const fetch = createFetch()
+    const client = new JSONRPCClient(
+      testendpoint,
+      { fetch, debounceWindow: 10 }
+    )
+    const [result] = await Promise.all([
+      client.api('test.unit').add(1, 2, 3, 4),
+      client.api('test.unit').add(4, 3, 2, 1)
+    ])
+    expect(result).to.eql(testresult)
+    expect(fetch).to.have.been.calledWith(testendpoint, {
+      method: DefaultMethod,
+      headers: {
+        [HeaderContentType]: DefaultContentType
+      },
+      body: JSON.stringify([{
+        jsonrpc: JSONRPCVersion,
+        method: 'test.unit.add',
+        params: [1, 2, 3, 4],
+        id: 0
+      }, {
+        jsonrpc: JSONRPCVersion,
+        method: 'test.unit.add',
+        params: [4, 3, 2, 1],
+        id: 1
+      }])
+    })
+    expect(fetch).to.have.been.calledOnce()
+    const secondResult = await client.api('test.unit').add(1, 3, 2, 4)
+    expect(secondResult).to.eql(testresult)
+    expect(fetch).to.have.been.calledTwice()
+  })
 
   it('closes ackd messages with no response', async () => {
     const fetch = sinon.fake(() => {
